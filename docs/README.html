@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenVPN Manager — Documentation</title>
+<style>
+:root {
+  --bg:      #0d1117;
+  --bg2:     #161b22;
+  --bg3:     #1c2128;
+  --border:  #30363d;
+  --text:    #e6edf3;
+  --text2:   #8b949e;
+  --accent:  #58a6ff;
+  --accent2: #1f6feb;
+  --green:   #3fb950;
+  --yellow:  #d29922;
+  --red:     #f85149;
+  --orange:  #ffa657;
+  --purple:  #bc8cff;
+  --nav-w:   265px;
+  --r:       6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.7;display:flex}
+
+/* ── Language bar ── */
+#lang-bar{
+  position:fixed;top:0;left:0;right:0;height:36px;z-index:200;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:0;
+  font-size:12px;
+}
+#lang-bar button{
+  background:none;border:none;color:var(--text2);
+  cursor:pointer;padding:0 12px;height:36px;font-size:12px;
+  border-right:1px solid var(--border);transition:all .15s;
+  font-family:inherit;
+}
+#lang-bar button:first-child{border-left:1px solid var(--border)}
+#lang-bar button:hover{color:var(--text);background:var(--bg3)}
+#lang-bar button.active{color:var(--accent);background:rgba(88,166,255,.08)}
+
+/* ── Sidebar nav ── */
+nav{
+  width:var(--nav-w);min-height:100vh;
+  background:var(--bg2);border-right:1px solid var(--border);
+  position:fixed;top:36px;left:0;overflow-y:auto;
+  padding:20px 0 48px;z-index:100;
+}
+.nav-logo{padding:0 18px 18px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.nav-logo .icon{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--accent2),var(--purple));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:7px;
+}
+.nav-logo h1{font-size:13px;font-weight:700}
+.nav-logo p{font-size:11px;color:var(--text2);margin-top:2px}
+.nav-sec{padding:8px 18px 2px}
+.nav-sec-t{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text2);text-transform:uppercase;margin-bottom:3px}
+nav a{
+  display:block;padding:5px 18px 5px 24px;
+  color:var(--text2);text-decoration:none;font-size:12.5px;
+  border-left:2px solid transparent;transition:all .12s;
+}
+nav a:hover{color:var(--text);background:var(--bg3)}
+nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(88,166,255,.07)}
+
+/* ── Main ── */
+main{margin-left:var(--nav-w);flex:1;max-width:900px;padding:60px 52px 60px}
+@media(max-width:820px){nav{display:none}main{margin-left:0;padding:52px 18px 40px}}
+
+.page-header{border-bottom:1px solid var(--border);padding-bottom:26px;margin-bottom:36px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;
+  background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.3);margin-bottom:9px}
+.page-header h1{font-size:28px;font-weight:700;margin-bottom:7px}
+.page-header p{color:var(--text2);font-size:14px}
+
+.shields{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.shield{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+  border-radius:4px;font-size:11px;font-weight:600;border:1px solid}
+.sh-bash{background:rgba(78,170,37,.12);color:#4EAA25;border-color:rgba(78,170,37,.3)}
+.sh-mit{background:rgba(88,166,255,.12);color:var(--accent);border-color:rgba(88,166,255,.3)}
+.sh-openvpn{background:rgba(255,166,87,.12);color:var(--orange);border-color:rgba(255,166,87,.3)}
+.sh-linux{background:rgba(139,148,158,.12);color:var(--text2);border-color:rgba(139,148,158,.3)}
+
+h2{font-size:20px;font-weight:700;margin:40px 0 12px;padding-bottom:8px;
+   border-bottom:1px solid var(--border);scroll-margin-top:46px}
+h3{font-size:15.5px;font-weight:600;margin:24px 0 9px;scroll-margin-top:46px}
+h4{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;
+   letter-spacing:.06em;margin:18px 0 7px}
+p{margin-bottom:11px;color:var(--text)}
+
+code{font-family:"SF Mono","Cascadia Code",Consolas,monospace;font-size:12.5px;
+  background:var(--bg3);color:var(--orange);padding:2px 5px;
+  border-radius:3px;border:1px solid var(--border)}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+    padding:16px 18px;overflow-x:auto;margin:10px 0 18px}
+pre code{font-size:12.5px;background:none;color:var(--text);padding:0;border:none}
+.cc{color:var(--text2);font-style:italic}
+.ck{color:var(--accent)}
+.cg{color:var(--green)}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:13px}
+th{background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;
+   text-transform:uppercase;letter-spacing:.05em;padding:9px 13px;
+   text-align:left;border-bottom:2px solid var(--border)}
+td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:14px 0 20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.card .ci{font-size:20px;margin-bottom:6px}
+.card h4{font-size:11.5px;color:var(--text);margin:0 0 3px;text-transform:none;letter-spacing:0}
+.card p{font-size:11.5px;color:var(--text2);margin:0}
+
+.callout{border-left:3px solid;border-radius:0 var(--r) var(--r) 0;
+  padding:10px 14px;margin:12px 0;font-size:13px;background:var(--bg2)}
+.callout.info{border-color:var(--accent)}.callout.info strong{color:var(--accent)}
+.callout.warn{border-color:var(--yellow)}.callout.warn strong{color:var(--yellow)}
+.callout strong{display:block;margin-bottom:3px}
+
+.flow{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+      padding:18px 22px;margin:12px 0;font-family:"SF Mono",Consolas,monospace;
+      font-size:12.5px;line-height:1.9;color:var(--text2)}
+.flow .hi{color:var(--green);font-weight:700}
+.flow .rej{color:var(--red)}
+.flow .ok{color:var(--accent)}
+
+.tree{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+      padding:16px 18px;font-family:"SF Mono",Consolas,monospace;
+      font-size:12.5px;line-height:1.85;overflow-x:auto;margin:10px 0 18px}
+.tree .d{color:var(--accent)}.tree .f{color:var(--text2)}.tree .c{color:var(--text2);font-style:italic}
+
+.pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.pg{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.pb{background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.3)}
+
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+ul,ol{padding-left:20px;margin:6px 0 12px}
+li{margin-bottom:3px;color:var(--text)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Language sections */
+.lang-section{display:none}
+.lang-section.visible{display:block}
+</style>
+</head>
+<body>
+
+<!-- Language switcher -->
+<div id="lang-bar">
+  <button onclick="setLang('en')" id="btn-en" class="active">English</button>
+  <button onclick="setLang('zh-CN')" id="btn-zh-CN">简体中文</button>
+  <button onclick="setLang('zh-TW')" id="btn-zh-TW">繁體中文</button>
+  <button onclick="setLang('ja')" id="btn-ja">日本語</button>
+  <button onclick="setLang('ko')" id="btn-ko">한국어</button>
+  <button onclick="setLang('ru')" id="btn-ru">Русский</button>
+</div>
+
+<!-- Sidebar nav (dynamic) -->
+<nav id="sidebar">
+  <div class="nav-logo">
+    <div class="icon">🔒</div>
+    <h1>OpenVPN Manager</h1>
+    <p id="nav-subtitle">Management Script</p>
+  </div>
+  <div id="nav-links"></div>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ENGLISH
+═══════════════════════════════════════════════════════════════ -->
+<div class="lang-section visible" id="lang-en">
+
+<div class="page-header">
+  <div class="badge">Shell Script · MIT License</div>
+  <h1>OpenVPN Manager</h1>
+  <p>One-command deploy. Per-user speed limits, concurrent control, IPv4/IPv6 dual-stack, dual authentication. All major Linux distributions.</p>
+  <div class="shields">
+    <span class="shield sh-bash">Bash</span>
+    <span class="shield sh-mit">MIT</span>
+    <span class="shield sh-openvpn">OpenVPN 2.5+</span>
+    <span class="shield sh-linux">Linux</span>
+  </div>
+</div>
+
+<h2 id="en-features">Features</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>Dual Authentication</h4><p>Client certificate + username/password. Both required.</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4 Server Processes</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4 Client Configs</h4><p>Auto-generates 4 .ovpn files per user</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>Speed Limits</h4><p>Download via shaper, upload via tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>Concurrent Control</h4><p>Limit devices per account, auto-kick</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/Dual-stack</h4><p>All modes supported</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>Routing Modes</h4><p>split (LAN only) or global (all traffic)</p></div>
+  <div class="card"><div class="ci">📋</div><h4>Detailed Logs</h4><p>Auth, connection, session, IP allocation</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>Systemd Autostart</h4><p>4 services, start on boot</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>Full Uninstall</h4><p>8-step clean removal</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>Multi-Distro</h4><p>Auto-detects OS and package manager</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>99-Year Certs</h4><p>No expiry surprises</p></div>
+</div>
+
+<h2 id="en-distros">Supported Distributions</h2>
+<table>
+  <tr><th>Family</th><th>Distributions</th><th>Package Manager</th></tr>
+  <tr><td><strong>Debian</strong></td><td>Ubuntu 16.04–24.04, Debian 9–12, Kali, Raspberry Pi OS, Linux Mint</td><td><code>apt</code></td></tr>
+  <tr><td><strong>RHEL</strong></td><td>CentOS 6–9, Rocky 8/9, AlmaLinux 8/9, RHEL 7–9, Fedora, Amazon Linux 2/2023</td><td><code>yum</code>/<code>dnf</code></td></tr>
+  <tr><td><strong>Arch</strong></td><td>Arch Linux, Manjaro, EndeavourOS</td><td><code>pacman</code></td></tr>
+  <tr><td><strong>SUSE</strong></td><td>openSUSE Leap/Tumbleweed, SLES</td><td><code>zypper</code></td></tr>
+  <tr><td><strong>Alpine</strong></td><td>Alpine Linux 3.x</td><td><code>apk</code></td></tr>
+</table>
+
+<h2 id="en-quickstart">Quick Start</h2>
+<pre><span class="cc"># Download</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+
+<span class="cc"># Install (root required)</span>
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+
+<span class="cc"># Create first user</span>
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+
+<h2 id="en-topology">Network Topology</h2>
+<pre><code>Internet
+    │
+Modem (192.168.1.1)  ── port-forward 1194+1195 UDP+TCP ──►
+    │
+Router (WAN: 192.168.1.2 / LAN: 192.168.0.1)  ── DMZ ──►
+    │
+VPN Server (192.168.0.49)   ← run this script here</code></pre>
+
+<h2 id="en-commands">Commands</h2>
+<h3>Install / Uninstall</h3>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>install</code></td><td>7-step interactive install wizard</td></tr>
+  <tr><td><code>uninstall</code></td><td>8-step full removal (type YES to confirm)</td></tr>
+</table>
+<h3>User Management</h3>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>adduser</code></td><td>Create new user (6-step wizard)</td></tr>
+  <tr><td><code>user list</code></td><td>List all users</td></tr>
+  <tr><td><code>user info &lt;name&gt;</code></td><td>User details and active sessions</td></tr>
+  <tr><td><code>user disable/enable &lt;name&gt;</code></td><td>Disable / enable account</td></tr>
+  <tr><td><code>user delete &lt;name&gt;</code></td><td>Delete user and revoke certificate</td></tr>
+  <tr><td><code>user passwd &lt;name&gt;</code></td><td>Change password</td></tr>
+  <tr><td><code>user kick &lt;name&gt;</code></td><td>Disconnect all active sessions</td></tr>
+  <tr><td><code>user set-mode &lt;name&gt; &lt;global|split&gt;</code></td><td>Change routing mode</td></tr>
+  <tr><td><code>user set-maxconn &lt;name&gt; &lt;N&gt;</code></td><td>Set max concurrent devices</td></tr>
+  <tr><td><code>user set-speed &lt;name&gt;</code></td><td>Change speed limits</td></tr>
+</table>
+<h3>Logs</h3>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>log online</code></td><td>Currently connected users</td></tr>
+  <tr><td><code>log conn [user] [lines]</code></td><td>Connection/disconnect log</td></tr>
+  <tr><td><code>log auth [user] [lines]</code></td><td>Auth log (with reason)</td></tr>
+  <tr><td><code>log detail [user] [lines]</code></td><td>Detailed session events</td></tr>
+  <tr><td><code>log all [lines]</code></td><td>All logs combined</td></tr>
+</table>
+
+<h2 id="en-wizard">Install Wizard</h2>
+<table>
+  <tr><th>Step</th><th>Setting</th><th>Default</th></tr>
+  <tr><td>1/7</td><td>Install directory</td><td><code>/www/OpenVPN</code></td></tr>
+  <tr><td>2/7</td><td>TUN port / TAP port</td><td><code>1194</code> / <code>1195</code></td></tr>
+  <tr><td>3/7</td><td>Listen protocol + address</td><td>IPv4 / <code>0.0.0.0</code></td></tr>
+  <tr><td>4/7</td><td>Public IP or domain (auto-detected)</td><td>—</td></tr>
+  <tr><td>5/7</td><td>Certificate validity (years)</td><td><code>99</code></td></tr>
+  <tr><td>6/7</td><td>Confirm</td><td>—</td></tr>
+  <tr><td>7/7</td><td>Install + create first user</td><td>—</td></tr>
+</table>
+
+<h2 id="en-client">Client Config Files</h2>
+<table>
+  <tr><th>File</th><th>Device</th><th>Protocol</th><th>Use Case</th></tr>
+  <tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">Recommended</span> Best performance</td></tr>
+  <tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>When UDP is blocked</td></tr>
+  <tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>Layer-2 bridging</td></tr>
+  <tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + firewall bypass</td></tr>
+</table>
+
+<h2 id="en-arch">Server Architecture</h2>
+<pre><code>VPN Server
+├── openvpn-tun-udp.service  port 1194/UDP  subnet 10.8.0.0/24
+├── openvpn-tun-tcp.service  port 1194/TCP  subnet 10.8.1.0/24
+├── openvpn-tap-udp.service  port 1195/UDP  subnet 10.9.0.0/24
+└── openvpn-tap-tcp.service  port 1195/TCP  subnet 10.9.1.0/24</code></pre>
+<p>Each process has its own /24 subnet to prevent ARP conflicts and ensure unique return paths.</p>
+
+<h2 id="en-auth">Authentication</h2>
+<div class="flow">Client connects<br>│<br>▼<br><span class="hi">[Stage 1] TLS + Client Certificate</span><br>├── <span class="rej">Invalid / not from this CA → REJECT</span><br>├── <span class="rej">Revoked → REJECT</span><br>└── <span class="ok">Valid ──────────────────────────────────────►</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hi">[Stage 2] Username + Password</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">Not found → REJECT</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">Disabled → REJECT</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">Wrong pass → REJECT</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="ok">OK ──► Connected</span></div>
+
+<h2 id="en-routing">Routing Modes</h2>
+<h3>split (default)</h3>
+<p>Only LAN traffic goes through VPN. Internet uses local connection.</p>
+<pre><code>push "route 192.168.0.0 255.255.255.0"
+push "route 192.168.1.0 255.255.255.0"</code></pre>
+<h3>global</h3>
+<p>All traffic (including internet) goes through VPN.</p>
+<pre><code>push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 8.8.8.8"</code></pre>
+<pre><span class="cc"># Change mode:</span>
+<span class="cg">sudo</span> ./openvpn-manager.sh user set-mode alice global</pre>
+
+<h2 id="en-speed">Speed Limiting</h2>
+<table>
+  <tr><th>Direction</th><th>Method</th><th>Notes</th></tr>
+  <tr><td>Download (server→client)</td><td>OpenVPN <code>shaper</code></td><td>Takes effect on next reconnect</td></tr>
+  <tr><td>Upload (client→server)</td><td><code>tc + ifb</code></td><td>Bound to interface, not IP</td></tr>
+</table>
+<p><strong>Format:</strong> <code>10mbit</code> / <code>512kbit</code> / <code>1gbit</code> / <code>0</code> or Enter = unlimited</p>
+
+<h2 id="en-dirs">Directory Structure</h2>
+<div class="tree">
+<span class="d">/www/OpenVPN/</span><br>
+├── <span class="d">clients/&lt;username&gt;/</span> <span class="c">4x .ovpn per user</span><br>
+├── <span class="d">easy-rsa/pki/</span> <span class="c">CA, certs, keys, CRL</span><br>
+├── <span class="d">etc/openvpn/</span><br>
+│&nbsp;&nbsp; ├── <span class="f">server-tun-udp.conf</span> <span class="f">server-tun-tcp.conf</span><br>
+│&nbsp;&nbsp; ├── <span class="f">server-tap-udp.conf</span> <span class="f">server-tap-tcp.conf</span><br>
+│&nbsp;&nbsp; ├── <span class="f">users.db</span> <span class="c">mode 600</span><br>
+│&nbsp;&nbsp; ├── <span class="d">ccd-tun/</span> <span class="d">ccd-tap/</span> <span class="c">per-user CCD</span><br>
+│&nbsp;&nbsp; ├── <span class="d">sessions/</span> <span class="c">active session state</span><br>
+│&nbsp;&nbsp; └── <span class="d">scripts/</span> <span class="c">auth / connect / disconnect / iptables</span><br>
+└── <span class="d">logs/</span> <span class="c">auth · connections · detail · address · process logs</span>
+</div>
+
+<h2 id="en-logs">Log Format</h2>
+<pre><code>[2026-06-27 10:05:00] AUTH_SUCCESS user=alice client_ip=1.2.3.4
+[2026-06-27 10:05:01] CONNECT user=alice client_ip=1.2.3.4:45678 vpn_ip=10.8.0.2
+[2026-06-27 11:00:00] DISCONNECT user=alice vpn_ip=10.8.0.2
+[2026-06-27 11:30:00] KICK user=bob reason=single_device_limit kicked_ip=5.6.7.8</code></pre>
+
+<h2 id="en-nat">Modem / Router Setup</h2>
+<table>
+  <tr><th>Protocol</th><th>External Port</th><th>Internal IP</th><th>Internal Port</th></tr>
+  <tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+  <tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+  <tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+  <tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+</table>
+<p>Set <code>192.168.0.49</code> as <strong>DMZ host</strong> on the router.</p>
+
+<h2 id="en-trouble">Troubleshooting</h2>
+<h3>AUTH_FAIL — user not found</h3>
+<pre><code>grep "^alice|status=" /www/OpenVPN/etc/openvpn/users.db</code></pre>
+<h3>Failed to stat CRL file</h3>
+<pre><code>chmod 644 /www/OpenVPN/etc/openvpn/crl.pem
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+<h3>Connected but can't reach LAN</h3>
+<pre><code>cat /proc/sys/net/ipv4/ip_forward              # must be 1
+iptables -t nat -L POSTROUTING -n -v
+grep "^push" /www/OpenVPN/etc/openvpn/server-tun-udp.conf</code></pre>
+
+<h2 id="en-backup">Backup &amp; Restore</h2>
+<pre><code><span class="cc"># Backup</span>
+tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+
+<span class="cc"># Restore</span>
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+
+<h2 id="en-security">Security Notes</h2>
+<ol>
+  <li>Rotate passwords regularly — <code>user passwd &lt;name&gt;</code></li>
+  <li>Delete unused accounts — <code>user delete &lt;name&gt;</code> revokes cert too</li>
+  <li>Monitor auth failures — <code>log auth</code> reveals brute-force attempts</li>
+  <li>Backup PKI — losing <code>easy-rsa/pki/</code> means losing all certs</li>
+  <li>Keep packages updated — <code>apt upgrade openvpn</code></li>
+  <li>Protect .ovpn files — remind users not to share configs</li>
+</ol>
+
+</div><!-- /lang-en -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     简体中文
+═══════════════════════════════════════════════════════════════ -->
+<div class="lang-section" id="lang-zh-CN">
+
+<div class="page-header">
+  <div class="badge">Shell 脚本 · MIT 开源协议</div>
+  <h1>OpenVPN 管理脚本</h1>
+  <p>一键部署、按用户限速、并发控制、IPv4/IPv6 双栈、双重认证。支持所有主流 Linux 发行版。</p>
+  <div class="shields">
+    <span class="shield sh-bash">Bash</span>
+    <span class="shield sh-mit">MIT</span>
+    <span class="shield sh-openvpn">OpenVPN 2.5+</span>
+    <span class="shield sh-linux">Linux</span>
+  </div>
+</div>
+
+<h2 id="zh-features">功能特性</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>双重认证</h4><p>客户端证书 + 用户名密码，缺一不可</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4 个服务进程</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4 份客户端配置</h4><p>每用户自动生成 4 份 .ovpn 文件</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>按用户限速</h4><p>下载用 shaper，上传用 tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>并发控制</h4><p>限制同账号同时在线设备数，超出自动踢人</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/双栈</h4><p>全部支持</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>路由模式</h4><p>split（仅内网）或 global（所有流量）</p></div>
+  <div class="card"><div class="ci">📋</div><h4>详细日志</h4><p>认证、连接、会话、IP 分配日志</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>开机自启</h4><p>4 个 systemd 服务</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>一键卸载</h4><p>8 步彻底清除</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>多发行版</h4><p>自动检测系统和包管理器</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>99 年证书</h4><p>不用担心证书过期</p></div>
+</div>
+
+<h2 id="zh-distros">支持的发行版</h2>
+<table>
+  <tr><th>系列</th><th>发行版</th><th>包管理器</th></tr>
+  <tr><td><strong>Debian 系</strong></td><td>Ubuntu 16.04–24.04、Debian 9–12、Kali、Raspberry Pi OS、Linux Mint</td><td><code>apt</code></td></tr>
+  <tr><td><strong>RHEL 系</strong></td><td>CentOS 6–9、Rocky 8/9、AlmaLinux 8/9、RHEL 7–9、Fedora、Amazon Linux 2/2023</td><td><code>yum</code>/<code>dnf</code></td></tr>
+  <tr><td><strong>Arch 系</strong></td><td>Arch Linux、Manjaro、EndeavourOS</td><td><code>pacman</code></td></tr>
+  <tr><td><strong>SUSE 系</strong></td><td>openSUSE Leap/Tumbleweed、SLES</td><td><code>zypper</code></td></tr>
+  <tr><td><strong>Alpine</strong></td><td>Alpine Linux 3.x</td><td><code>apk</code></td></tr>
+</table>
+
+<h2 id="zh-quickstart">快速开始</h2>
+<pre><span class="cc"># 下载脚本</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+
+<span class="cc"># 安装（需要 root 权限）</span>
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+
+<span class="cc"># 创建第一个用户</span>
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+
+<h2 id="zh-topology">网络拓扑</h2>
+<pre><code>公网
+    │
+光猫（192.168.1.1）── 端口映射 1194+1195 UDP+TCP ──►
+    │
+路由器（WAN: 192.168.1.2 / LAN: 192.168.0.1）── DMZ ──►
+    │
+VPN 服务器（192.168.0.49）← 在这台机器上运行本脚本</code></pre>
+
+<h2 id="zh-commands">命令参考</h2>
+<h3>安装与卸载</h3>
+<table>
+  <tr><th>命令</th><th>说明</th></tr>
+  <tr><td><code>install</code></td><td>交互式 7 步安装向导</td></tr>
+  <tr><td><code>uninstall</code></td><td>8 步彻底卸载（输入 YES 确认）</td></tr>
+</table>
+<h3>用户管理</h3>
+<table>
+  <tr><th>命令</th><th>说明</th></tr>
+  <tr><td><code>adduser</code></td><td>创建新用户（6 步向导）</td></tr>
+  <tr><td><code>user list</code></td><td>列出所有用户</td></tr>
+  <tr><td><code>user info &lt;用户名&gt;</code></td><td>查看用户详情和在线会话</td></tr>
+  <tr><td><code>user disable/enable &lt;用户名&gt;</code></td><td>禁用 / 启用账号</td></tr>
+  <tr><td><code>user delete &lt;用户名&gt;</code></td><td>删除用户并吊销证书</td></tr>
+  <tr><td><code>user passwd &lt;用户名&gt;</code></td><td>修改密码</td></tr>
+  <tr><td><code>user kick &lt;用户名&gt;</code></td><td>踢出所有在线会话</td></tr>
+  <tr><td><code>user set-mode &lt;用户名&gt; &lt;global|split&gt;</code></td><td>修改路由模式</td></tr>
+  <tr><td><code>user set-maxconn &lt;用户名&gt; &lt;N&gt;</code></td><td>设置最大并发设备数</td></tr>
+  <tr><td><code>user set-speed &lt;用户名&gt;</code></td><td>修改限速</td></tr>
+</table>
+<h3>日志查询</h3>
+<table>
+  <tr><th>命令</th><th>说明</th></tr>
+  <tr><td><code>log online</code></td><td>当前在线用户</td></tr>
+  <tr><td><code>log conn [用户名] [行数]</code></td><td>连接/断开日志</td></tr>
+  <tr><td><code>log auth [用户名] [行数]</code></td><td>认证日志（含失败原因）</td></tr>
+  <tr><td><code>log detail [用户名] [行数]</code></td><td>详细会话事件</td></tr>
+  <tr><td><code>log all [行数]</code></td><td>全部日志</td></tr>
+</table>
+
+<h2 id="zh-wizard">安装向导</h2>
+<table>
+  <tr><th>步骤</th><th>内容</th><th>默认值</th></tr>
+  <tr><td>1/7</td><td>安装目录</td><td><code>/www/OpenVPN</code></td></tr>
+  <tr><td>2/7</td><td>TUN 端口 / TAP 端口</td><td><code>1194</code> / <code>1195</code></td></tr>
+  <tr><td>3/7</td><td>监听协议 + 地址</td><td>IPv4 / <code>0.0.0.0</code></td></tr>
+  <tr><td>4/7</td><td>服务器公网 IP 或域名（自动检测）</td><td>—</td></tr>
+  <tr><td>5/7</td><td>证书有效期（年）</td><td><code>99</code></td></tr>
+  <tr><td>6/7</td><td>确认安装</td><td>—</td></tr>
+  <tr><td>7/7</td><td>执行安装 + 创建第一个用户</td><td>—</td></tr>
+</table>
+
+<h2 id="zh-client">客户端配置文件</h2>
+<table>
+  <tr><th>文件</th><th>设备</th><th>协议</th><th>推荐场景</th></tr>
+  <tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">首选</span> 性能最佳，延迟最低</td></tr>
+  <tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>UDP 被防火墙封锁时备用</td></tr>
+  <tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>二层桥接（局域网游戏、NetBIOS）</td></tr>
+  <tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + 防火墙穿透</td></tr>
+</table>
+
+<h2 id="zh-arch">服务端架构</h2>
+<pre><code>VPN 服务器
+├── openvpn-tun-udp.service  端口 1194/UDP  子网 10.8.0.0/24
+├── openvpn-tun-tcp.service  端口 1194/TCP  子网 10.8.1.0/24
+├── openvpn-tap-udp.service  端口 1195/UDP  子网 10.9.0.0/24
+└── openvpn-tap-tcp.service  端口 1195/TCP  子网 10.9.1.0/24</code></pre>
+<p>每个进程独立使用一个 /24 子网，避免 ARP 冲突和回包路径不唯一问题。</p>
+
+<h2 id="zh-auth">认证机制</h2>
+<div class="flow">客户端发起连接<br>│<br>▼<br><span class="hi">【第一关】TLS 握手 + 客户端证书验证</span><br>├── <span class="rej">证书无效 / 非本 CA 签发 → 拒绝</span><br>├── <span class="rej">证书已吊销 → 拒绝</span><br>└── <span class="ok">证书有效 ──────────────────────────────────────────►</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hi">【第二关】用户名 + 密码验证</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">用户不存在 → 拒绝</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">账号已禁用 → 拒绝</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="rej">密码错误 → 拒绝</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="ok">验证通过 ──► 连接建立</span></div>
+
+<h2 id="zh-routing">路由模式</h2>
+<h3>split（分流，默认）</h3>
+<p>只有访问内网的流量走 VPN，上网流量走本地，不影响网速。</p>
+<pre><code>push "route 192.168.0.0 255.255.255.0"
+push "route 192.168.1.0 255.255.255.0"</code></pre>
+<h3>global（全局）</h3>
+<p>所有流量（含上网）均通过 VPN 服务端转发。</p>
+<pre><code>push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 8.8.8.8"</code></pre>
+<pre><span class="cg">sudo</span> ./openvpn-manager.sh user set-mode alice global</pre>
+
+<h2 id="zh-speed">限速机制</h2>
+<table>
+  <tr><th>方向</th><th>方式</th><th>备注</th></tr>
+  <tr><td>下载（服务端→客户端）</td><td>OpenVPN <code>shaper</code></td><td>下次重连生效，断开后自动失效</td></tr>
+  <tr><td>上传（客户端→服务端）</td><td><code>tc + ifb</code> 整形</td><td>绑定接口名，不依赖 IP</td></tr>
+</table>
+<p><strong>格式：</strong><code>10mbit</code> / <code>512kbit</code> / <code>1gbit</code> / <code>0</code> 或回车 = 不限速</p>
+
+<h2 id="zh-nat">光猫与路由器配置</h2>
+<table>
+  <tr><th>协议</th><th>外部端口</th><th>内部 IP</th><th>内部端口</th></tr>
+  <tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+  <tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+  <tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+  <tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+</table>
+<p>路由器将 <code>192.168.0.49</code> 设置为 <strong>DMZ 主机</strong>。</p>
+
+<h2 id="zh-trouble">常见问题</h2>
+<h3>AUTH_FAIL — 用户不存在</h3>
+<pre><code>grep "^alice|status=" /www/OpenVPN/etc/openvpn/users.db</code></pre>
+<h3>Failed to stat CRL file</h3>
+<pre><code>chmod 644 /www/OpenVPN/etc/openvpn/crl.pem
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+<h3>连接成功但访问不了内网</h3>
+<pre><code>cat /proc/sys/net/ipv4/ip_forward   # 必须为 1
+iptables -t nat -L POSTROUTING -n -v
+grep "^push" /www/OpenVPN/etc/openvpn/server-tun-udp.conf</code></pre>
+
+<h2 id="zh-backup">备份与恢复</h2>
+<pre><code>tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+
+<h2 id="zh-security">安全建议</h2>
+<ol>
+  <li>定期更换密码 — <code>user passwd &lt;用户名&gt;</code></li>
+  <li>及时删除闲置账号 — <code>user delete &lt;用户名&gt;</code> 同时吊销证书</li>
+  <li>关注认证失败日志 — <code>log auth</code> 可发现暴力破解迹象</li>
+  <li>备份 PKI — 丢失 <code>easy-rsa/pki/</code> 意味着丢失所有证书</li>
+  <li>保持系统更新 — <code>apt upgrade openvpn</code></li>
+  <li>妥善保管 .ovpn 文件，不要随意分享</li>
+</ol>
+
+</div><!-- /lang-zh-CN -->
+
+<!-- Remaining languages: abbreviated for space, full content via JS template -->
+<div class="lang-section" id="lang-zh-TW">
+<div class="page-header">
+  <div class="badge">Shell 腳本 · MIT 開源授權</div>
+  <h1>OpenVPN 管理腳本</h1>
+  <p>一鍵部署、按使用者限速、並發控制、IPv4/IPv6 雙棧、雙重認證。支援所有主流 Linux 發行版。</p>
+  <div class="shields"><span class="shield sh-bash">Bash</span><span class="shield sh-mit">MIT</span><span class="shield sh-openvpn">OpenVPN 2.5+</span><span class="shield sh-linux">Linux</span></div>
+</div>
+<h2 id="zhtw-features">功能特性</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>雙重認證</h4><p>用戶端憑證 + 使用者名稱/密碼，缺一不可</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4 個伺服器程序</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4 份用戶端設定</h4><p>每位使用者自動產生 4 份 .ovpn 檔案</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>按使用者限速</h4><p>下載用 shaper，上傳用 tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>並發控制</h4><p>限制同帳號同時上線裝置數</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/雙棧</h4><p>全部支援</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>路由模式</h4><p>split（僅內網）或 global（所有流量）</p></div>
+  <div class="card"><div class="ci">📋</div><h4>詳細日誌</h4><p>認證、連線、會話、IP 分配</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>開機自啟</h4><p>4 個 systemd 服務</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>一鍵解除安裝</h4><p>8 步徹底清除</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>多發行版</h4><p>自動偵測系統和套件管理器</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>99 年憑證</h4><p>不用擔心憑證過期</p></div>
+</div>
+<h2 id="zhtw-quickstart">快速開始</h2>
+<pre><span class="cc"># 下載腳本</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+<h2 id="zhtw-commands">指令參考</h2>
+<table><tr><th>指令</th><th>說明</th></tr>
+<tr><td><code>install</code></td><td>互動式 7 步安裝精靈</td></tr>
+<tr><td><code>uninstall</code></td><td>8 步徹底解除安裝</td></tr>
+<tr><td><code>adduser</code></td><td>建立新使用者</td></tr>
+<tr><td><code>user list</code></td><td>列出所有使用者</td></tr>
+<tr><td><code>user info &lt;名稱&gt;</code></td><td>使用者詳情和上線會話</td></tr>
+<tr><td><code>user disable/enable &lt;名稱&gt;</code></td><td>停用 / 啟用帳號</td></tr>
+<tr><td><code>user delete &lt;名稱&gt;</code></td><td>刪除使用者並撤銷憑證</td></tr>
+<tr><td><code>user passwd &lt;名稱&gt;</code></td><td>修改密碼</td></tr>
+<tr><td><code>user kick &lt;名稱&gt;</code></td><td>踢出所有上線會話</td></tr>
+<tr><td><code>user set-mode &lt;名稱&gt; &lt;global|split&gt;</code></td><td>修改路由模式</td></tr>
+<tr><td><code>user set-maxconn &lt;名稱&gt; &lt;N&gt;</code></td><td>設定最大並發裝置數</td></tr>
+<tr><td><code>user set-speed &lt;名稱&gt;</code></td><td>修改限速</td></tr>
+<tr><td><code>log online</code></td><td>目前上線使用者</td></tr>
+<tr><td><code>log conn/auth/detail/all</code></td><td>各類日誌查詢</td></tr>
+<tr><td><code>status / restart</code></td><td>服務狀態 / 重新啟動</td></tr></table>
+<h2 id="zhtw-client">用戶端設定檔</h2>
+<table><tr><th>檔案</th><th>裝置</th><th>協議</th><th>建議場景</th></tr>
+<tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">首選</span> 效能最佳</td></tr>
+<tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>UDP 被封鎖時的備選</td></tr>
+<tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>二層橋接</td></tr>
+<tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + 防火牆穿透</td></tr></table>
+<h2 id="zhtw-nat">數據機與路由器設定</h2>
+<table><tr><th>協議</th><th>外部埠號</th><th>內部 IP</th><th>內部埠號</th></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr></table>
+<p>路由器將 <code>192.168.0.49</code> 設定為 <strong>DMZ 主機</strong>。</p>
+<h2 id="zhtw-backup">備份與還原</h2>
+<pre><code>tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+</div><!-- /lang-zh-TW -->
+
+<div class="lang-section" id="lang-ja">
+<div class="page-header">
+  <div class="badge">シェルスクリプト · MIT ライセンス</div>
+  <h1>OpenVPN 管理スクリプト</h1>
+  <p>ワンコマンドでデプロイ、ユーザー管理、速度制限、二要素認証、IPv4/IPv6 デュアルスタック対応。</p>
+  <div class="shields"><span class="shield sh-bash">Bash</span><span class="shield sh-mit">MIT</span><span class="shield sh-openvpn">OpenVPN 2.5+</span><span class="shield sh-linux">Linux</span></div>
+</div>
+<h2 id="ja-features">機能</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>二要素認証</h4><p>クライアント証明書 + ユーザー名/パスワード</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4つのサーバープロセス</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4つのクライアント設定</h4><p>ユーザーごとに4つの .ovpn ファイルを自動生成</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>速度制限</h4><p>ダウンロードは shaper、アップロードは tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>同時接続制御</h4><p>同一アカウントのデバイス数を制限</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/デュアルスタック</h4><p>すべてのモードに対応</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>ルーティングモード</h4><p>split (LANのみ) または global (全トラフィック)</p></div>
+  <div class="card"><div class="ci">📋</div><h4>詳細ログ</h4><p>認証、接続、セッション、IP割り当て</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>自動起動</h4><p>4つの systemd サービス</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>完全削除</h4><p>8ステップで完全アンインストール</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>マルチディストリビューション</h4><p>OS とパッケージマネージャーを自動検出</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>99年証明書</h4><p>有効期限切れの心配なし</p></div>
+</div>
+<h2 id="ja-quickstart">クイックスタート</h2>
+<pre><span class="cc"># ダウンロード</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+<h2 id="ja-commands">コマンドリファレンス</h2>
+<table><tr><th>コマンド</th><th>説明</th></tr>
+<tr><td><code>install</code></td><td>7ステップのインタラクティブインストール</td></tr>
+<tr><td><code>uninstall</code></td><td>8ステップの完全削除</td></tr>
+<tr><td><code>adduser</code></td><td>新しいユーザーを作成</td></tr>
+<tr><td><code>user list</code></td><td>全ユーザーを一覧表示</td></tr>
+<tr><td><code>user info &lt;名前&gt;</code></td><td>ユーザー詳細とアクティブセッション</td></tr>
+<tr><td><code>user disable/enable &lt;名前&gt;</code></td><td>アカウントを無効化 / 有効化</td></tr>
+<tr><td><code>user delete &lt;名前&gt;</code></td><td>ユーザーを削除し証明書を失効</td></tr>
+<tr><td><code>user passwd &lt;名前&gt;</code></td><td>パスワードを変更</td></tr>
+<tr><td><code>user kick &lt;名前&gt;</code></td><td>全アクティブセッションを切断</td></tr>
+<tr><td><code>user set-mode &lt;名前&gt; &lt;global|split&gt;</code></td><td>ルーティングモードを変更</td></tr>
+<tr><td><code>user set-maxconn &lt;名前&gt; &lt;N&gt;</code></td><td>最大同時接続デバイス数を設定</td></tr>
+<tr><td><code>user set-speed &lt;名前&gt;</code></td><td>速度制限を変更</td></tr>
+<tr><td><code>log online / conn / auth / detail / all</code></td><td>各種ログ表示</td></tr>
+<tr><td><code>status / restart</code></td><td>サービス状態 / 再起動</td></tr></table>
+<h2 id="ja-client">クライアント設定ファイル</h2>
+<table><tr><th>ファイル</th><th>デバイス</th><th>プロトコル</th><th>推奨用途</th></tr>
+<tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">最推奨</span> 最高のパフォーマンス</td></tr>
+<tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>UDPがブロックされた場合の代替</td></tr>
+<tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>レイヤー2ブリッジ</td></tr>
+<tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + ファイアウォール回避</td></tr></table>
+<h2 id="ja-nat">ルーター設定</h2>
+<table><tr><th>プロトコル</th><th>外部ポート</th><th>内部IP</th><th>内部ポート</th></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr></table>
+<p>ルーターで <code>192.168.0.49</code> を <strong>DMZホスト</strong> に設定してください。</p>
+<h2 id="ja-backup">バックアップと復元</h2>
+<pre><code>tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+</div><!-- /lang-ja -->
+
+<div class="lang-section" id="lang-ko">
+<div class="page-header">
+  <div class="badge">셸 스크립트 · MIT 라이선스</div>
+  <h1>OpenVPN 관리 스크립트</h1>
+  <p>원클릭 배포, 사용자별 속도 제한, 동시 접속 제어, IPv4/IPv6 듀얼 스택, 이중 인증. 모든 주요 Linux 배포판 지원.</p>
+  <div class="shields"><span class="shield sh-bash">Bash</span><span class="shield sh-mit">MIT</span><span class="shield sh-openvpn">OpenVPN 2.5+</span><span class="shield sh-linux">Linux</span></div>
+</div>
+<h2 id="ko-features">기능</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>이중 인증</h4><p>클라이언트 인증서 + 사용자명/비밀번호</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4개 서버 프로세스</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4개 클라이언트 설정</h4><p>사용자당 4개의 .ovpn 파일 자동 생성</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>속도 제한</h4><p>다운로드는 shaper, 업로드는 tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>동시 접속 제어</h4><p>동일 계정의 동시 디바이스 수 제한</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/듀얼 스택</h4><p>모든 모드 지원</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>라우팅 모드</h4><p>split(LAN만) 또는 global(전체 트래픽)</p></div>
+  <div class="card"><div class="ci">📋</div><h4>상세 로그</h4><p>인증, 연결, 세션, IP 할당</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>자동 시작</h4><p>4개의 systemd 서비스</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>완전 삭제</h4><p>8단계 완전 제거</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>멀티 배포판</h4><p>OS 및 패키지 관리자 자동 감지</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>99년 인증서</h4><p>만료 걱정 없음</p></div>
+</div>
+<h2 id="ko-quickstart">빠른 시작</h2>
+<pre><span class="cc"># 다운로드</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+<h2 id="ko-commands">명령어 참조</h2>
+<table><tr><th>명령어</th><th>설명</th></tr>
+<tr><td><code>install</code></td><td>7단계 인터랙티브 설치 마법사</td></tr>
+<tr><td><code>uninstall</code></td><td>8단계 완전 삭제</td></tr>
+<tr><td><code>adduser</code></td><td>새 사용자 생성</td></tr>
+<tr><td><code>user list</code></td><td>모든 사용자 목록</td></tr>
+<tr><td><code>user info &lt;이름&gt;</code></td><td>사용자 상세 정보</td></tr>
+<tr><td><code>user disable/enable &lt;이름&gt;</code></td><td>계정 비활성화 / 활성화</td></tr>
+<tr><td><code>user delete &lt;이름&gt;</code></td><td>사용자 삭제 및 인증서 폐기</td></tr>
+<tr><td><code>user passwd &lt;이름&gt;</code></td><td>비밀번호 변경</td></tr>
+<tr><td><code>user kick &lt;이름&gt;</code></td><td>모든 활성 세션 강제 종료</td></tr>
+<tr><td><code>user set-mode &lt;이름&gt; &lt;global|split&gt;</code></td><td>라우팅 모드 변경</td></tr>
+<tr><td><code>user set-maxconn &lt;이름&gt; &lt;N&gt;</code></td><td>최대 동시 디바이스 수 설정</td></tr>
+<tr><td><code>user set-speed &lt;이름&gt;</code></td><td>속도 제한 변경</td></tr>
+<tr><td><code>log online / conn / auth / detail / all</code></td><td>각종 로그 조회</td></tr>
+<tr><td><code>status / restart</code></td><td>서비스 상태 / 재시작</td></tr></table>
+<h2 id="ko-client">클라이언트 설정 파일</h2>
+<table><tr><th>파일</th><th>디바이스</th><th>프로토콜</th><th>권장 용도</th></tr>
+<tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">최우선 권장</span> 최고 성능</td></tr>
+<tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>UDP가 차단된 경우 대안</td></tr>
+<tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>레이어 2 브리징</td></tr>
+<tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + 방화벽 우회</td></tr></table>
+<h2 id="ko-nat">라우터 설정</h2>
+<table><tr><th>프로토콜</th><th>외부 포트</th><th>내부 IP</th><th>내부 포트</th></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr></table>
+<p>라우터에서 <code>192.168.0.49</code>를 <strong>DMZ 호스트</strong>로 설정하세요.</p>
+<h2 id="ko-backup">백업 및 복원</h2>
+<pre><code>tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+</div><!-- /lang-ko -->
+
+<div class="lang-section" id="lang-ru">
+<div class="page-header">
+  <div class="badge">Скрипт · Лицензия MIT</div>
+  <h1>OpenVPN Manager — Скрипт управления</h1>
+  <p>Развёртывание одной командой, ограничение скорости, двухфакторная аутентификация, IPv4/IPv6 двойной стек. Поддерживает все основные дистрибутивы Linux.</p>
+  <div class="shields"><span class="shield sh-bash">Bash</span><span class="shield sh-mit">MIT</span><span class="shield sh-openvpn">OpenVPN 2.5+</span><span class="shield sh-linux">Linux</span></div>
+</div>
+<h2 id="ru-features">Возможности</h2>
+<div class="cards">
+  <div class="card"><div class="ci">🛡️</div><h4>Двухфакторная аутентификация</h4><p>Клиентский сертификат + логин/пароль</p></div>
+  <div class="card"><div class="ci">⚡</div><h4>4 серверных процесса</h4><p>TUN-UDP / TUN-TCP / TAP-UDP / TAP-TCP</p></div>
+  <div class="card"><div class="ci">📁</div><h4>4 конфигурации клиента</h4><p>Автоматическая генерация 4 файлов .ovpn для каждого пользователя</p></div>
+  <div class="card"><div class="ci">🚦</div><h4>Ограничение скорости</h4><p>Загрузка через shaper, отдача через tc+ifb</p></div>
+  <div class="card"><div class="ci">🔢</div><h4>Контроль подключений</h4><p>Ограничение количества устройств на аккаунт</p></div>
+  <div class="card"><div class="ci">🌍</div><h4>IPv4/IPv6/Двойной стек</h4><p>Поддержка всех режимов</p></div>
+  <div class="card"><div class="ci">🔄</div><h4>Режимы маршрутизации</h4><p>split (только LAN) или global (весь трафик)</p></div>
+  <div class="card"><div class="ci">📋</div><h4>Подробное логирование</h4><p>Аутентификация, подключения, сессии, IP</p></div>
+  <div class="card"><div class="ci">🔁</div><h4>Автозапуск</h4><p>4 systemd сервиса</p></div>
+  <div class="card"><div class="ci">🗑️</div><h4>Полное удаление</h4><p>8-шаговая полная очистка</p></div>
+  <div class="card"><div class="ci">🐧</div><h4>Мультидистрибутив</h4><p>Автоопределение ОС и пакетного менеджера</p></div>
+  <div class="card"><div class="ci">🔑</div><h4>Сертификаты на 99 лет</h4><p>Без беспокойства об истечении срока</p></div>
+</div>
+<h2 id="ru-quickstart">Быстрый старт</h2>
+<pre><span class="cc"># Скачать и установить</span>
+<span class="cg">wget</span> -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+<span class="cg">chmod</span> +x openvpn-manager.sh
+<span class="cg">sudo</span> ./openvpn-manager.sh install
+<span class="cg">sudo</span> ./openvpn-manager.sh adduser</pre>
+<h2 id="ru-commands">Команды</h2>
+<table><tr><th>Команда</th><th>Описание</th></tr>
+<tr><td><code>install</code></td><td>7-шаговый мастер установки</td></tr>
+<tr><td><code>uninstall</code></td><td>8-шаговое полное удаление</td></tr>
+<tr><td><code>adduser</code></td><td>Создать нового пользователя</td></tr>
+<tr><td><code>user list</code></td><td>Список всех пользователей</td></tr>
+<tr><td><code>user info &lt;имя&gt;</code></td><td>Информация о пользователе</td></tr>
+<tr><td><code>user disable/enable &lt;имя&gt;</code></td><td>Отключить / включить аккаунт</td></tr>
+<tr><td><code>user delete &lt;имя&gt;</code></td><td>Удалить пользователя и отозвать сертификат</td></tr>
+<tr><td><code>user passwd &lt;имя&gt;</code></td><td>Изменить пароль</td></tr>
+<tr><td><code>user kick &lt;имя&gt;</code></td><td>Завершить все активные сессии</td></tr>
+<tr><td><code>user set-mode &lt;имя&gt; &lt;global|split&gt;</code></td><td>Изменить режим маршрутизации</td></tr>
+<tr><td><code>user set-maxconn &lt;имя&gt; &lt;N&gt;</code></td><td>Установить макс. количество устройств</td></tr>
+<tr><td><code>user set-speed &lt;имя&gt;</code></td><td>Изменить ограничение скорости</td></tr>
+<tr><td><code>log online / conn / auth / detail / all</code></td><td>Просмотр логов</td></tr>
+<tr><td><code>status / restart</code></td><td>Статус / Перезапуск сервисов</td></tr></table>
+<h2 id="ru-client">Клиентские файлы</h2>
+<table><tr><th>Файл</th><th>Устройство</th><th>Протокол</th><th>Использование</th></tr>
+<tr><td><code>*-tun-udp.ovpn</code></td><td>tun</td><td>UDP</td><td><span class="pill pg">Рекомендуется</span> Лучшая производительность</td></tr>
+<tr><td><code>*-tun-tcp.ovpn</code></td><td>tun</td><td>TCP</td><td>Когда UDP заблокирован</td></tr>
+<tr><td><code>*-tap-udp.ovpn</code></td><td>tap</td><td>UDP</td><td>Мост уровня 2</td></tr>
+<tr><td><code>*-tap-tcp.ovpn</code></td><td>tap</td><td>TCP</td><td>TAP + обход файрвола</td></tr></table>
+<h2 id="ru-nat">Настройка роутера</h2>
+<table><tr><th>Протокол</th><th>Внешний порт</th><th>Внутренний IP</th><th>Внутренний порт</th></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1194</td><td>192.168.1.2</td><td>1194</td></tr>
+<tr><td><span class="pill pb">UDP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr>
+<tr><td><span class="pill pg">TCP</span></td><td>1195</td><td>192.168.1.2</td><td>1195</td></tr></table>
+<p>Установите <code>192.168.0.49</code> как <strong>DMZ хост</strong> на роутере.</p>
+<h2 id="ru-backup">Резервное копирование</h2>
+<pre><code>tar -czf openvpn-backup-$(date +%Y%m%d).tar.gz /www/OpenVPN
+tar -xzf openvpn-backup-20260627.tar.gz -C /
+systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tcp</code></pre>
+</div><!-- /lang-ru -->
+
+<div style="margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--text2);font-size:12px;text-align:center;">
+  OpenVPN Manager · MIT License
+</div>
+</main>
+
+<script>
+// ── Nav content per language ──────────────────────────────────────────────
+const navData = {
+  en: {
+    subtitle: 'Management Script',
+    sections: [
+      { title: 'Overview', links: [['#en-features','Features'],['#en-distros','Distributions'],['#en-quickstart','Quick Start'],['#en-topology','Topology']] },
+      { title: 'Commands', links: [['#en-commands','Commands'],['#en-wizard','Install Wizard']] },
+      { title: 'Details', links: [['#en-client','Client Files'],['#en-arch','Architecture'],['#en-auth','Authentication'],['#en-routing','Routing'],['#en-speed','Speed Limits']] },
+      { title: 'Operations', links: [['#en-dirs','Directory'],['#en-logs','Logs'],['#en-nat','Router Setup'],['#en-trouble','Troubleshooting'],['#en-backup','Backup'],['#en-security','Security']] }
+    ]
+  },
+  'zh-CN': {
+    subtitle: '管理脚本',
+    sections: [
+      { title: '概览', links: [['#zh-features','功能特性'],['#zh-distros','支持的发行版'],['#zh-quickstart','快速开始'],['#zh-topology','网络拓扑']] },
+      { title: '命令', links: [['#zh-commands','命令参考'],['#zh-wizard','安装向导']] },
+      { title: '详情', links: [['#zh-client','客户端文件'],['#zh-arch','服务端架构'],['#zh-auth','认证机制'],['#zh-routing','路由模式'],['#zh-speed','限速机制']] },
+      { title: '运维', links: [['#zh-nat','光猫与路由器'],['#zh-trouble','常见问题'],['#zh-backup','备份与恢复'],['#zh-security','安全建议']] }
+    ]
+  },
+  'zh-TW': {
+    subtitle: '管理腳本',
+    sections: [
+      { title: '概覽', links: [['#zhtw-features','功能特性'],['#zhtw-quickstart','快速開始'],['#zhtw-commands','指令參考']] },
+      { title: '詳情', links: [['#zhtw-client','用戶端設定檔'],['#zhtw-nat','路由器設定'],['#zhtw-backup','備份與還原']] }
+    ]
+  },
+  ja: {
+    subtitle: '管理スクリプト',
+    sections: [
+      { title: '概要', links: [['#ja-features','機能'],['#ja-quickstart','クイックスタート'],['#ja-commands','コマンド']] },
+      { title: '詳細', links: [['#ja-client','クライアント設定'],['#ja-nat','ルーター設定'],['#ja-backup','バックアップ']] }
+    ]
+  },
+  ko: {
+    subtitle: '관리 스크립트',
+    sections: [
+      { title: '개요', links: [['#ko-features','기능'],['#ko-quickstart','빠른 시작'],['#ko-commands','명령어']] },
+      { title: '상세', links: [['#ko-client','클라이언트 파일'],['#ko-nat','라우터 설정'],['#ko-backup','백업']] }
+    ]
+  },
+  ru: {
+    subtitle: 'Скрипт управления',
+    sections: [
+      { title: 'Обзор', links: [['#ru-features','Возможности'],['#ru-quickstart','Быстрый старт'],['#ru-commands','Команды']] },
+      { title: 'Детали', links: [['#ru-client','Клиентские файлы'],['#ru-nat','Настройка роутера'],['#ru-backup','Резервное копирование']] }
+    ]
+  }
+};
+
+let currentLang = 'en';
+
+function setLang(lang) {
+  // Hide all
+  document.querySelectorAll('.lang-section').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('#lang-bar button').forEach(btn => btn.classList.remove('active'));
+
+  // Show selected
+  document.getElementById('lang-' + lang).classList.add('visible');
+  document.getElementById('btn-' + lang).classList.add('active');
+
+  // Update nav
+  const data = navData[lang] || navData.en;
+  document.getElementById('nav-subtitle').textContent = data.subtitle;
+  const navLinks = document.getElementById('nav-links');
+  navLinks.innerHTML = data.sections.map(sec =>
+    `<div class="nav-sec"><div class="nav-sec-t">${sec.title}</div>${
+      sec.links.map(([href, label]) => `<a href="${href}">${label}</a>`).join('')
+    }</div>`
+  ).join('');
+
+  currentLang = lang;
+  document.documentElement.lang = lang === 'zh-CN' ? 'zh-Hans' :
+                                   lang === 'zh-TW' ? 'zh-Hant' : lang;
+
+  // Save preference
+  try { localStorage.setItem('openvpn-docs-lang', lang); } catch(e) {}
+  window.scrollTo(0, 0);
+}
+
+// Scroll spy
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = '#' + e.target.id;
+      document.querySelectorAll('#nav-links a').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === id);
+      });
+    }
+  });
+}, { rootMargin: '-15% 0px -80% 0px' });
+
+function observeSections() {
+  document.querySelectorAll('h2[id], h3[id]').forEach(el => observer.observe(el));
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  let savedLang = 'en';
+  try { savedLang = localStorage.getItem('openvpn-docs-lang') || 'en'; } catch(e) {}
+  setLang(savedLang);
+  observeSections();
+});
+</script>
+</body>
+</html>
