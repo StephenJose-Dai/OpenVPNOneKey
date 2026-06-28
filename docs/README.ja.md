@@ -79,15 +79,19 @@
 
 ```bash
 # 1. ダウンロード
-wget -O openvpn-manager.sh https://your-host/openvpn-manager.sh
+wget https://github.com/StephenJose-Dai/OpenVPNOneKey/archive/refs/tags/V26.6.281056.zip
 
-# 2. 実行権限を付与
+# 2. 解凍する
+unzip V26.6.281056.zip
+
+# 3. 実行権限を付与
+cd OpenVPNOneKey-26.6.281056
 chmod +x openvpn-manager.sh
 
-# 3. インストール（root権限が必要）
+# 4 インストール（root権限が必要）
 sudo ./openvpn-manager.sh install
 
-# 4. 最初のユーザーを作成
+# 5. 最初のユーザーを作成
 sudo ./openvpn-manager.sh adduser
 ```
 
@@ -249,3 +253,11 @@ systemctl restart openvpn-tun-udp openvpn-tun-tcp openvpn-tap-udp openvpn-tap-tc
 ## ライセンス
 
 [MIT](../LICENSE)
+
+<div align="center">
+
+このプロジェクトが役に立ったと思ったら、ぜひ星5つを付けてください！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=StephenJose-Dai/OpenVPNOneKey&type=Date)](https://star-history.com/#StephenJose-Dai/OpenVPNOneKey&Date)
+
+</div>
